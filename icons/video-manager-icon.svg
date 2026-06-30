@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 主背景渐变 -->
+    <linearGradient id="mainBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 屏幕背景渐变 -->
+    <linearGradient id="screenBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 播放按钮渐变 -->
+    <linearGradient id="playBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ff8e8e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff5757;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 高光效果 -->
+    <linearGradient id="highlight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+    </linearGradient>
+    
+    <!-- 阴影滤镜 -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+    
+    <!-- 内阴影滤镜 -->
+    <filter id="innerShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feOffset dx="0" dy="-2"/>
+      <feGaussianBlur stdDeviation="3" result="offset-blur"/>
+      <feFlood flood-color="#000000" flood-opacity="0.2"/>
+      <feComposite in2="offset-blur" operator="in"/>
+    </filter>
+  </defs>
+  
+  <!-- 主背景圆角矩形 -->
+  <rect x="16" y="16" width="224" height="224" rx="56" ry="56" fill="url(#mainBg)" filter="url(#shadow)"/>
+  
+  <!-- 主屏幕外框 -->
+  <rect x="40" y="48" width="176" height="132" rx="12" ry="12" fill="#2c3e50" opacity="0.8"/>
+  
+  <!-- 主屏幕 -->
+  <rect x="48" y="56" width="160" height="116" rx="8" ry="8" fill="url(#screenBg)"/>
+  
+  <!-- 屏幕内容 - 视频条纹效果 -->
+  <rect x="56" y="72" width="144" height="3" fill="#4ecdc4" opacity="0.6"/>
+  <rect x="56" y="84" width="120" height="3" fill="#45b7d1" opacity="0.5"/>
+  <rect x="56" y="96" width="136" height="3" fill="#96ceb4" opacity="0.4"/>
+  <rect x="56" y="108" width="100" height="3" fill="#ffeaa7" opacity="0.3"/>
+  
+  <!-- 中央播放按钮背景圆 -->
+  <circle cx="128" cy="128" r="36" fill="url(#playBg)" filter="url(#shadow)"/>
+  
+  <!-- 播放按钮三角形 -->
+  <polygon points="118,110 118,146 150,128" fill="#ffffff" opacity="0.95"/>
+  
+  <!-- 播放按钮高光 -->
+  <circle cx="128" cy="128" r="36" fill="url(#highlight)"/>
+  
+  <!-- 底部控制栏 -->
+  <rect x="48" y="188" width="160" height="28" rx="14" ry="14" fill="#34495e"/>
+  
+  <!-- 文件夹图标 (体现管理功能) -->
+  <g transform="translate(60, 196)">
+    <rect x="0" y="4" width="16" height="12" rx="2" ry="2" fill="#f39c12" opacity="0.8"/>
+    <rect x="4" y="0" width="8" height="4" rx="1" ry="1" fill="#e67e22" opacity="0.8"/>
+  </g>
+  
+  <!-- 播放列表图标 -->
+  <g transform="translate(180, 196)">
+    <rect x="0" y="2" width="12" height="2" rx="1" ry="1" fill="#3498db" opacity="0.8"/>
+    <rect x="0" y="6" width="8" height="2" rx="1" ry="1" fill="#3498db" opacity="0.6"/>
+    <rect x="0" y="10" width="10" height="2" rx="1" ry="1" fill="#3498db" opacity="0.4"/>
+  </g>
+  
+  <!-- 进度条 -->
+  <rect x="100" y="204" width="56" height="4" rx="2" ry="2" fill="#2c3e50" opacity="0.5"/>
+  <rect x="100" y="204" width="32" height="4" rx="2" ry="2" fill="#e74c3c"/>
+  
+  <!-- 整体高光效果 -->
+  <rect x="16" y="16" width="224" height="112" rx="56" ry="28" fill="url(#highlight)"/>
+  
+  <!-- 小装饰点 -->
+  <circle cx="200" cy="76" r="3" fill="#ff6b6b" opacity="0.6"/>
+  <circle cx="210" cy="88" r="2" fill="#4ecdc4" opacity="0.7"/>
+  <circle cx="190" cy="100" r="2.5" fill="#feca57" opacity="0.5"/>
+</svg> 

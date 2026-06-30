@@ -344,6 +344,8 @@ class Database {
         userNotes: existingVideo.userNotes, // 保留用户备注
         lastWatchedAt: existingVideo.lastWatchedAt, // 保留观看时间
         watchProgress: existingVideo.watchProgress, // 保留观看进度
+        nfoData: existingVideo.nfoData || videoInfo.nfoData, // 🔥 保留NFO数据
+        thumbnail: existingVideo.thumbnail || videoInfo.thumbnail, // 🔥 保留封面信息
         
         // 🔥 修复：保护剧集的标签信息
         episodes: videoInfo.episodes ? videoInfo.episodes.map(newEpisode => {
@@ -357,7 +359,9 @@ class Database {
               userRating: existingEpisode.userRating,
               userNotes: existingEpisode.userNotes,
               lastWatchedAt: existingEpisode.lastWatchedAt,
-              watchProgress: existingEpisode.watchProgress
+              watchProgress: existingEpisode.watchProgress,
+              nfoData: existingEpisode.nfoData || newEpisode.nfoData, // 🔥 保留剧集NFO数据
+              thumbnail: existingEpisode.thumbnail || newEpisode.thumbnail // 🔥 保留剧集封面信息
             };
           }
           return newEpisode;
@@ -382,6 +386,12 @@ class Database {
 
   async clearVideosForCategory(categoryId: string): Promise<void> {
     this.data.videos = this.data.videos.filter(v => v.categoryId !== categoryId);
+    await this.write();
+  }
+
+  // 删除单个视频记录
+  async deleteVideoById(videoId: string): Promise<void> {
+    this.data.videos = this.data.videos.filter(v => v.id !== videoId);
     await this.write();
   }
 
@@ -831,7 +841,26 @@ class Database {
     
     // 🔥 关键修复：生成新的视频ID基于新路径
     const path = require('path');
-    const fileNameWithoutExt = path.basename(newPath, path.extname(newPath));
+    console.log('  🔍 调试 path.basename 过程:');
+    console.log('    📂 输入 newPath:', JSON.stringify(newPath));
+    console.log('    📏 newPath 长度:', newPath.length);
+    
+    // 🔥 修复：对于目录路径，直接使用 basename，不移除扩展名
+    // 因为目录名中的 .com 等不是真正的文件扩展名
+    let fileNameWithoutExt = path.basename(newPath);
+    
+    // 如果是文件路径（有真正的视频文件扩展名），才移除扩展名
+    const videoExts = ['.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm', '.m4v', '.3gp', '.ts', '.m2ts'];
+    const ext = path.extname(newPath);
+    if (videoExts.includes(ext.toLowerCase())) {
+      fileNameWithoutExt = path.basename(newPath, ext);
+      console.log('    📹 检测到视频文件，移除扩展名:', ext);
+    } else {
+      console.log('    📁 检测到目录路径，保留完整名称');
+    }
+    
+    console.log('    ✂️ 最终文件名:', JSON.stringify(fileNameWithoutExt));
+    console.log('    📏 最终文件名长度:', fileNameWithoutExt.length);
     const normalizedPath = newPath.replace(/\\/g, '/');
     
     // 使用相同的ID生成逻辑
@@ -879,6 +908,9 @@ class Database {
     
     console.log('  🆔 旧ID:', videoId);
     console.log('  🆔 新ID:', newVideoId);
+    console.log('  📏 新ID长度:', newVideoId.length);
+    console.log('  📝 文件名:', fileNameWithoutExt);
+    console.log('  📏 文件名长度:', fileNameWithoutExt.length);
     console.log('  📺 是否为剧集:', isEpisode);
     
     // 🔥 防止重复：检查新ID是否已存在
@@ -937,8 +969,13 @@ class Database {
       let historyUpdated = 0;
       for (const history of this.data.renameHistory) {
         if (history.videoId === videoId) {
-          console.log('  🔄 更新重命名历史记录中的videoId:', videoId, '->', newVideoId);
+          console.log('  🔄 更新重命名历史记录中的videoId:');
+          console.log('    📜 旧ID:', videoId);
+          console.log('    🆕 新ID:', newVideoId);
+          console.log('    📏 新ID长度:', newVideoId.length);
+          console.log('    🎯 实际赋值前 newVideoId =', JSON.stringify(newVideoId));
           history.videoId = newVideoId;
+          console.log('    ✅ 赋值后 history.videoId =', JSON.stringify(history.videoId));
           historyUpdated++;
         }
       }

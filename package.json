@@ -64,12 +64,19 @@
       }
     ],
     "win": {
+      "icon": "icons/video-manager.ico",
       "target": {
         "target": "nsis",
         "arch": [
           "x64"
         ]
       }
+    },
+    "mac": {
+      "icon": "icons/video-manager.png"
+    },
+    "linux": {
+      "icon": "icons/video-manager.png"
     },
     "nsis": {
       "oneClick": false,

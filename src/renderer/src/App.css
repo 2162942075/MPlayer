@@ -1,3 +1,7 @@
+/* ================================= */
+/* 视频管理工具 - 简化高性能版本 CSS */
+/* ================================= */
+
 /* CSS变量定义 */
 :root {
   --primary-color: #1890ff;
@@ -22,413 +26,391 @@
 body {
   background: var(--background-color);
   color: var(--text-primary);
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-/* 背景图片遮罩层 */
-body.has-background-image::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--bg-overlay, rgba(0, 0, 0, 0.2));
-  z-index: -1;
-  pointer-events: none;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .ant-layout {
   background: transparent !important;
+  min-height: 100vh;
 }
 
+/* 侧边栏样式 */
 .ant-layout-sider {
-  background: var(--sider-background, var(--card-background)) !important;
-  border-right: 1px solid var(--border-color, rgba(217, 217, 217, 0.3));
-  backdrop-filter: blur(12px) saturate(150%);
-  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+  background: var(--sider-background) !important;
+  border-right: 1px solid var(--border-color);
+  transition: all 0.3s ease !important;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
 }
 
-/* 背景图片模式下的侧边栏 */
-body.has-background-image .ant-layout-sider {
-  background: rgba(255, 255, 255, 0.1) !important;
-  backdrop-filter: blur(16px) saturate(180%);
-  border-right: 1px solid rgba(255, 255, 255, 0.2);
-}
-
+/* 头部样式 */
 .ant-layout-header {
   background: var(--header-background) !important;
-  border-bottom: 1px solid var(--border-color, rgba(217, 217, 217, 0.3));
-  backdrop-filter: blur(12px) saturate(150%);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--border-color);
   color: var(--text-primary) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
+/* 内容区域 */
 .ant-layout-content {
   padding: 24px;
   overflow: auto;
-  background: var(--content-background, var(--card-background)) !important;
-  backdrop-filter: blur(6px) saturate(110%);
-  border-radius: 12px;
-  margin: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  background: transparent !important;
+  border-radius: 8px;
+  margin: 12px;
 }
 
-/* 背景图片模式下让内容区域更透明 */
-body.has-background-image .ant-layout-content {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.25) 0%, 
-    rgba(255, 255, 255, 0.35) 50%, 
-    rgba(255, 255, 255, 0.3) 100%) !important;
-  backdrop-filter: blur(6px) saturate(130%);
-}
-
-/* 主题化组件 */
+/* 菜单样式 */
 .ant-menu {
   background: transparent !important;
   border: none !important;
+  padding: 12px 0;
 }
 
 .ant-menu-item {
   color: var(--sider-text) !important;
-  background: var(--menu-item-bg, transparent) !important;
+  background: transparent !important;
   border-radius: 8px !important;
-  margin: 4px 8px !important;
-  transition: all 0.3s ease !important;
+  margin: 2px 12px !important;
+  padding: 12px 16px !important;
+  height: auto !important;
+  line-height: 1.4 !important;
+  transition: all 0.2s ease !important;
 }
 
 .ant-menu-item:hover {
+  color: var(--primary-color) !important;
   background: var(--menu-item-hover) !important;
-  color: var(--sider-text) !important;
-  transform: translateX(2px) !important;
+  transform: translateX(2px);
 }
 
 .ant-menu-item-selected {
-  background: var(--menu-item-active) !important;
+  background: var(--primary-color) !important;
   color: #fff !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
 }
 
-/* 基础卡片样式 - 非视频卡片使用 */
-.ant-card:not(.video-card) {
+.ant-menu-item .anticon {
+  font-size: 16px !important;
+  margin-right: 12px !important;
+  transition: transform 0.2s ease !important;
+}
+
+.ant-menu-item:hover .anticon {
+  transform: scale(1.1);
+}
+
+/* 基础卡片样式 */
+.ant-card {
   background: var(--card-background) !important;
   border: 1px solid var(--border-color) !important;
   transition: all 0.3s ease !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.ant-card:not(.video-card):hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+.ant-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  border-color: var(--primary-color);
 }
 
-/* 视频卡片专用样式 - 最高优先级 */
+/* 视频卡片专用样式 */
 .video-card.ant-card,
 .ant-card.video-card {
-  background: var(--video-card-background, #ffffff) !important;
-  background-color: var(--video-card-background, #ffffff) !important;
-  border: 1px solid var(--border-color, #d9d9d9) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  opacity: 1 !important;
+  background: var(--video-card-background) !important;
+  border: 1px solid var(--border-color) !important;
+  transition: all 0.3s ease !important;
   min-height: 260px !important;
-  position: relative !important;
-  overflow: hidden !important;
   border-radius: 8px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  cursor: pointer;
 }
 
-/* 强制视频卡片最小可见度 - 防止完全透明 */
-.video-card.ant-card::before,
-.ant-card.video-card::before {
+.video-card.ant-card:hover,
+.ant-card.video-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.video-card .ant-card-body {
+  padding: 12px 16px !important;
+}
+
+.video-card .ant-card-cover {
+  border-radius: 8px 8px 0 0 !important;
+  overflow: hidden !important;
+  position: relative !important;
+  height: 360px !important;
+  background: #f8f9fa !important;
+}
+
+.video-card .ant-card-cover img,
+.video-thumbnail {
+  width: 100% !important;
+  height: 360px !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  transition: transform 0.3s ease !important;
+  background: #f5f5f5;
+  display: block !important;
+  border-radius: 8px 8px 0 0 !important;
+}
+
+.video-card:hover .video-thumbnail {
+  transform: scale(1.05) !important;
+}
+
+/* 剧集卡片封面样式 - 动态适应图片比例 */
+.episode-card .ant-card-cover {
+  height: 200px !important;
+  overflow: hidden !important;
+  border-radius: 6px 6px 0 0 !important;
+  position: relative !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #f8f9fa !important;
+}
+
+/* 横版剧集封面 (16:9等) */
+.episode-card.horizontal .ant-card-cover {
+  aspect-ratio: 16/9 !important;
+  height: auto !important;
+}
+
+/* 竖版剧集封面 (2:3等) */
+.episode-card.vertical .ant-card-cover {
+  aspect-ratio: 2/3 !important;
+  height: auto !important;
+}
+
+/* 方形剧集封面 (1:1) */
+.episode-card.square .ant-card-cover {
+  aspect-ratio: 1/1 !important;
+  height: auto !important;
+}
+
+.episode-card .ant-card-cover img,
+.episode-card .video-thumbnail {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  transition: transform 0.3s ease !important;
+  background: #f5f5f5;
+  display: block !important;
+  border-radius: 6px 6px 0 0 !important;
+}
+
+/* 横版剧集封面图片 */
+.episode-card.horizontal .ant-card-cover img,
+.episode-card.horizontal .video-thumbnail {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+/* 竖版剧集封面图片 */
+.episode-card.vertical .ant-card-cover img,
+.episode-card.vertical .video-thumbnail {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+/* 方形剧集封面图片 */
+.episode-card.square .ant-card-cover img,
+.episode-card.square .video-thumbnail {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.episode-card:hover .video-thumbnail {
+  transform: scale(1.03) !important;
+}
+
+/* 剧集卡片播放悬停提示 */
+.episode-card .play-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  opacity: 0;
+  border-radius: 6px 6px 0 0;
+}
+
+.episode-card:hover .play-overlay {
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 1;
+}
+
+.episode-card .play-overlay .anticon {
+  font-size: 32px;
+  color: #fff;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+  transition: transform 0.3s ease;
+}
+
+.episode-card:hover .play-overlay .anticon {
+  transform: scale(1.1);
+}
+
+/* 剧集卡片占位符专用样式 */
+.episode-card .video-thumbnail-placeholder {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 6px 6px 0 0 !important;
+}
+
+.episode-card .video-thumbnail-placeholder::after {
+  font-size: 11px !important;
+  color: #8c8c8c !important;
+}
+
+.episode-card .video-thumbnail-placeholder .anticon {
+  font-size: 28px !important;
+  color: #8c8c8c !important;
+  margin-bottom: 6px !important;
+}
+
+
+
+/* 视频缩略图占位符样式 */
+.video-thumbnail-placeholder {
+  width: 100% !important;
+  height: 360px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+  border: none !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+}
+
+.video-thumbnail-placeholder::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
-  z-index: -1;
-  pointer-events: none;
+  background: linear-gradient(135deg, 
+    rgba(108, 117, 125, 0.1) 0%, 
+    rgba(108, 117, 125, 0.05) 50%, 
+    rgba(108, 117, 125, 0.1) 100%);
+  z-index: 1;
 }
 
-.video-card.ant-card:hover,
-.ant-card.video-card:hover {
-  background: var(--video-card-background, #ffffff) !important;
-  background-color: var(--video-card-background, #ffffff) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15) !important;
-  border-color: var(--primary-color, #1890ff) !important;
-  opacity: 1 !important;
+.video-thumbnail-placeholder .anticon {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 8px;
 }
 
-/* 视频卡片内容区域 */
-.video-card.ant-card .ant-card-body {
-  background: transparent !important;
-  padding: 8px 12px !important;
-  border: none !important;
+.video-thumbnail-placeholder::after {
+  content: attr(data-text);
+  position: relative;
+  z-index: 2;
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+  text-align: center;
 }
 
-/* 视频卡片封面区域 */
-.video-card.ant-card .ant-card-cover {
-  background: #f5f5f5 !important;
-  border: none !important;
-}
-
-/* 视频卡片标题优化 */
-.video-card.ant-card .ant-card-meta {
-  margin-bottom: 0 !important;
-}
-
-.video-card.ant-card .ant-card-meta-title {
+.video-card .ant-card-meta-title {
   font-size: 14px !important;
   font-weight: 500 !important;
   line-height: 1.4 !important;
   margin-bottom: 0 !important;
   color: var(--text-primary) !important;
+  transition: color 0.3s ease !important;
 }
 
-.video-card.ant-card .video-title {
-  font-size: 14px !important;
-  line-height: 1.4 !important;
-  margin: 0 !important;
+.video-card:hover .ant-card-meta-title {
+  color: var(--primary-color) !important;
+}
+
+/* 按钮样式 */
+.ant-btn {
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ant-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.ant-btn:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
 }
 
 .ant-btn-primary {
-  background-color: var(--primary-color) !important;
-  border-color: var(--primary-color) !important;
+  background: linear-gradient(135deg, var(--primary-color), rgba(24, 144, 255, 0.9)) !important;
+  border: none !important;
+  box-shadow: 0 3px 8px rgba(24, 144, 255, 0.3);
+}
+
+.ant-btn-primary:hover {
+  background: linear-gradient(135deg, rgba(24, 144, 255, 0.9), rgba(24, 144, 255, 0.8)) !important;
+  box-shadow: 0 6px 16px rgba(24, 144, 255, 0.4) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* 网格布局 */
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+  padding: 16px 0;
 }
 
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
-  margin-top: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  padding: 16px 0;
 }
 
-.video-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
-  margin-top: 16px;
+/* 卡片入场动画 */
+.video-grid .ant-card,
+.category-grid .ant-card {
+  animation: cardSlideIn 0.6s ease forwards;
+  opacity: 0;
+  transform: translateY(20px);
 }
 
-.empty-state {
-  text-align: center;
-  padding: 64px 16px;
-  color: #999;
-}
+.video-grid .ant-card:nth-child(1) { animation-delay: 0.1s; }
+.video-grid .ant-card:nth-child(2) { animation-delay: 0.2s; }
+.video-grid .ant-card:nth-child(3) { animation-delay: 0.3s; }
+.video-grid .ant-card:nth-child(4) { animation-delay: 0.4s; }
+.video-grid .ant-card:nth-child(5) { animation-delay: 0.5s; }
+.video-grid .ant-card:nth-child(6) { animation-delay: 0.6s; }
 
-.empty-state .anticon {
-  font-size: 64px;
-  margin-bottom: 16px;
-  color: #d9d9d9;
+@keyframes cardSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-
-.settings-section {
-  margin-bottom: 32px;
-}
-
-.settings-section h3 {
-  margin-bottom: 16px;
-  color: #262626;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-/* 背景图片模式下的特殊样式 - 只影响非视频卡片 */
-body.has-background-image .ant-card:not(.video-card) {
-  background: rgba(255, 255, 255, 0.75) !important;
-  backdrop-filter: blur(12px) saturate(120%);
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
-  transition: all 0.3s ease !important;
-}
-
-body.has-background-image .ant-card:not(.video-card):hover {
-  background: rgba(255, 255, 255, 0.85) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2) !important;
-}
-
-/* 背景图片模式下的视频卡片特殊处理 - 最高优先级 */
-body.has-background-image .video-card.ant-card,
-body.has-background-image .ant-card.video-card,
-body[class*="has-background-image"] .video-card.ant-card,
-body[class*="has-background-image"] .ant-card.video-card {
-  background: rgba(255, 255, 255, 0.95) !important;
-  background-color: rgba(255, 255, 255, 0.95) !important;
-  backdrop-filter: blur(12px) saturate(130%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.6) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
-  opacity: 1 !important;
-}
-
-body.has-background-image .video-card.ant-card:hover,
-body.has-background-image .ant-card.video-card:hover,
-body[class*="has-background-image"] .video-card.ant-card:hover,
-body[class*="has-background-image"] .ant-card.video-card:hover {
-  background: rgba(255, 255, 255, 0.98) !important;
-  background-color: rgba(255, 255, 255, 0.98) !important;
-  backdrop-filter: blur(16px) saturate(140%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.8) !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25) !important;
-  opacity: 1 !important;
-}
-
-/* 背景图片模式下的视频卡片内容强化 */
-body.has-background-image .video-card.ant-card .ant-card-body,
-body.has-background-image .ant-card.video-card .ant-card-body,
-body[class*="has-background-image"] .video-card.ant-card .ant-card-body,
-body[class*="has-background-image"] .ant-card.video-card .ant-card-body {
-  background: rgba(255, 255, 255, 0.2) !important;
-  background-color: rgba(255, 255, 255, 0.2) !important;
-  backdrop-filter: blur(4px) !important;
-  padding: 8px 12px !important;
-}
-
-/* 背景图片模式下的视频卡片文字强化 */
-body.has-background-image .video-card.ant-card .ant-card-meta-title {
-  color: var(--text-primary, #262626) !important;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8) !important;
-  font-weight: 600 !important;
-  font-size: 14px !important;
-  line-height: 1.4 !important;
-  margin-bottom: 0 !important;
-}
-
-body.has-background-image .video-card.ant-card .ant-card-meta {
-  margin-bottom: 0 !important;
-}
-
-body.has-background-image .video-card.ant-card .video-title {
-  font-size: 14px !important;
-  line-height: 1.4 !important;
-  margin: 0 !important;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8) !important;
-}
-
-/* 背景图片模式下的按钮样式强化 */
-body.has-background-image .video-card.ant-card .ant-btn {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border: 1px solid rgba(24, 144, 255, 0.5) !important;
-  backdrop-filter: blur(4px) !important;
-}
-
-body.has-background-image .video-card.ant-card .ant-btn-primary {
-  background: var(--primary-color, #1890ff) !important;
-  border-color: var(--primary-color, #1890ff) !important;
-  color: #ffffff !important;
-}
-
-body.has-background-image .video-card.ant-card .ant-btn:hover {
-  background: rgba(255, 255, 255, 1) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
-}
-
-body.has-background-image .ant-menu {
-  background: transparent !important;
-}
-
-body.has-background-image .ant-menu-item {
-  background: rgba(255, 255, 255, 0.15) !important;
-  border-radius: 8px;
-  margin: 4px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--text-on-bg, #ffffff) !important;
-  transition: all 0.3s ease;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-body.has-background-image .ant-menu-item:hover {
-  background: rgba(24, 144, 255, 0.25) !important;
-  transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2);
-  color: #ffffff !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
-}
-
-body.has-background-image .ant-menu-item-selected {
-  background: var(--primary-color) !important;
-  color: #fff !important;
-  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.3);
-}
-
-/* 文字颜色优化 */
-body.has-background-image .ant-layout-header h2,
-body.has-background-image .ant-layout-header .ant-btn,
-body.has-background-image .video-grid h3,
-body.has-background-image .category-grid h3 {
-  color: var(--text-on-bg) !important;
-  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.8);
-}
-
-body.has-background-image .ant-input,
-body.has-background-image .ant-select-selector {
-  background: rgba(255, 255, 255, 0.6) !important;
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
-}
-
-/* Logo容器样式优化 */
-body.has-background-image .logo-container {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  margin: 8px;
-  backdrop-filter: blur(8px);
-}
-
-body.has-background-image .logo-container h3 {
-  color: var(--text-on-bg) !important;
-  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.8);
-}
-
-/* 终极强制规则 - 确保所有视频卡片在背景图片模式下都可见 */
-html body.has-background-image .video-grid .ant-card,
-html body.has-background-image .video-grid .video-card,
-html body.has-background-image .video-grid .ant-card.video-card,
-html body.has-background-image .video-grid .video-card.ant-card {
-  background: rgba(255, 255, 255, 0.95) !important;
-  background-color: rgba(255, 255, 255, 0.95) !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-html body.has-background-image .video-grid .ant-card:hover,
-html body.has-background-image .video-grid .video-card:hover,
-html body.has-background-image .video-grid .ant-card.video-card:hover,
-html body.has-background-image .video-grid .video-card.ant-card:hover {
-  background: rgba(255, 255, 255, 0.98) !important;
-  background-color: rgba(255, 255, 255, 0.98) !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  backdrop-filter: blur(16px) saturate(140%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.8) !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25) !important;
-  transform: translateY(-2px) !important;
-}
-
-/* 超级优先级规则 - 防止hover时透明 */
-body.has-background-image .ant-card.video-card:hover,
-body.has-background-image .video-card.ant-card:hover,
-html body[class*="has-background-image"] .ant-card.video-card:hover,  
-html body[class*="has-background-image"] .video-card.ant-card:hover,
-html[data-theme] body.has-background-image .ant-card.video-card:hover,
-html[data-theme] body.has-background-image .video-card.ant-card:hover {
-  background: rgba(255, 255, 255, 0.98) !important;
-  background-color: rgba(255, 255, 255, 0.98) !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-/* ==================== 炫酷动画效果增强 ==================== */
 
 /* 页面切换动画 */
-.ant-layout-content {
-  position: relative;
-  /* overflow: hidden; 注释掉这行，避免影响Modal */
-}
-
 .page-transition-enter {
   opacity: 0;
   transform: translateY(20px);
@@ -437,7 +419,7 @@ html[data-theme] body.has-background-image .video-card.ant-card:hover {
 .page-transition-enter-active {
   opacity: 1;
   transform: translateY(0);
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: all 0.4s ease;
 }
 
 .page-transition-exit {
@@ -448,288 +430,64 @@ html[data-theme] body.has-background-image .video-card.ant-card:hover {
 .page-transition-exit-active {
   opacity: 0;
   transform: translateY(-10px);
-  transition: all 0.3s cubic-bezier(0.755, 0.05, 0.855, 0.06);
-}
-
-/* 侧边栏优化动画 */
-.ant-layout-sider {
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.08) !important;
-}
-
-.ant-layout-sider-collapsed {
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.05) !important;
-}
-
-/* Logo容器动画 */
-.logo-container {
-  padding: 16px;
-  text-align: center;
-  border-bottom: 1px solid var(--border-color, rgba(217, 217, 217, 0.3));
   transition: all 0.3s ease;
 }
 
-.logo-container h3 {
-  margin: 0;
-  font-weight: 600;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  background: linear-gradient(135deg, var(--primary-color, #1890ff), var(--accent-color, #52c41a));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.ant-layout-sider-collapsed .logo-container h3 {
-  transform: scale(0.9);
-}
-
-/* 菜单项增强动画 */
-.ant-menu-item {
-  position: relative !important;
-  overflow: hidden !important;
-  transform: translateZ(0) !important;
-}
-
-.ant-menu-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s ease;
-  z-index: 1;
-}
-
-.ant-menu-item:hover::before {
-  left: 100%;
-}
-
-.ant-menu-item .anticon {
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-}
-
-.ant-menu-item:hover .anticon {
-  transform: scale(1.1) rotate(5deg) !important;
-}
-
-.ant-menu-item-selected .anticon {
-  transform: scale(1.05) !important;
-}
-
-/* 头部按钮动画优化 */
-.ant-layout-header .ant-btn {
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-}
-
-.ant-layout-header .ant-btn::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  transition: all 0.4s ease;
-  transform: translate(-50%, -50%);
-  z-index: 0;
-}
-
-.ant-layout-header .ant-btn:hover::before {
-  width: 120%;
-  height: 120%;
-}
-
-.ant-layout-header .ant-btn:active {
-  transform: scale(0.96);
-}
-
-/* 卡片悬浮增强效果 */
-.ant-card {
-  position: relative !important;
-  /* 暂时注释掉可能影响Modal的样式 */
-  /* overflow: hidden !important; */
-  /* transform: translateZ(0) !important; */
-}
-
-/* 确保Modal内的卡片不影响Modal关闭 */
-.ant-modal .ant-card {
-  overflow: visible !important;
-  transform: none !important;
-  position: static !important;
-}
-
-/* 临时移除所有Modal相关的CSS重置 */
-
-.ant-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.ant-card:hover::before {
-  opacity: 1;
-}
-
-/* 视频卡片特殊悬浮效果 */
-.video-card.ant-card {
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-}
-
-.video-card.ant-card:hover {
-  transform: translateY(-8px) scale(1.02) !important;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
-}
-
-.video-card.ant-card .ant-card-cover {
-  overflow: hidden !important;
-  position: relative !important;
-}
-
-.video-card.ant-card .ant-card-cover::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(24, 144, 255, 0.1), rgba(82, 196, 26, 0.1));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.video-card.ant-card:hover .ant-card-cover::after {
-  opacity: 1;
-}
-
-/* 分类网格动画 */
-.category-grid .ant-card,
-.video-grid .ant-card {
-  animation: slideInUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-  opacity: 0;
-  transform: translateY(30px);
-}
-
-.category-grid .ant-card:nth-child(1) { animation-delay: 0.1s; }
-.category-grid .ant-card:nth-child(2) { animation-delay: 0.2s; }
-.category-grid .ant-card:nth-child(3) { animation-delay: 0.3s; }
-.category-grid .ant-card:nth-child(4) { animation-delay: 0.4s; }
-.category-grid .ant-card:nth-child(5) { animation-delay: 0.5s; }
-.category-grid .ant-card:nth-child(6) { animation-delay: 0.6s; }
-
-.video-grid .ant-card:nth-child(1) { animation-delay: 0.1s; }
-.video-grid .ant-card:nth-child(2) { animation-delay: 0.15s; }
-.video-grid .ant-card:nth-child(3) { animation-delay: 0.2s; }
-.video-grid .ant-card:nth-child(4) { animation-delay: 0.25s; }
-.video-grid .ant-card:nth-child(5) { animation-delay: 0.3s; }
-.video-grid .ant-card:nth-child(6) { animation-delay: 0.35s; }
-.video-grid .ant-card:nth-child(7) { animation-delay: 0.4s; }
-.video-grid .ant-card:nth-child(8) { animation-delay: 0.45s; }
-
-@keyframes slideInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 按钮微交互增强 */
-.ant-btn {
-  position: relative !important;
-  overflow: hidden !important;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-}
-
-.ant-btn::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  transition: all 0.4s ease;
-  transform: translate(-50%, -50%);
-  z-index: 0;
-}
-
-.ant-btn:hover::before {
-  width: 120%;
-  height: 120%;
-}
-
-.ant-btn:active {
-  transform: scale(0.96);
-}
-
-.ant-btn-primary {
-  background: linear-gradient(135deg, var(--primary-color), #40a9ff) !important;
+/* Modal样式 - 简化版本，移除所有性能问题 */
+.ant-modal .ant-modal-content {
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
   border: none !important;
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3) !important;
+  overflow: hidden;
 }
 
-.ant-btn-primary:hover {
-  background: linear-gradient(135deg, #40a9ff, var(--primary-color)) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.4) !important;
+.ant-modal .ant-modal-header {
+  border-radius: 8px 8px 0 0 !important;
+  background: #fafafa;
+  border-bottom: 1px solid var(--border-color);
 }
 
-/* 输入框焦点动画 */
+.ant-modal .ant-modal-title {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ant-modal .ant-modal-body {
+  padding: 20px !important;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.ant-modal .ant-modal-footer {
+  border-top: 1px solid var(--border-color);
+  padding: 16px 24px;
+}
+
+.ant-modal .ant-modal-close {
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+}
+
+.ant-modal .ant-modal-close:hover {
+  color: var(--text-primary);
+}
+
+/* 输入框样式 */
 .ant-input,
 .ant-select-selector {
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-  position: relative !important;
+  border-radius: 6px !important;
+  transition: all 0.3s ease !important;
 }
 
 .ant-input:focus,
-.ant-select-focused .ant-select-selector {
+.ant-select-selector:hover {
   border-color: var(--primary-color) !important;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1) !important;
-  transform: translateY(-1px) !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
 }
 
-/* 临时完全移除Modal的所有自定义样式，恢复默认 */
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(50px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* 列表项悬浮效果 */
-.ant-list-item {
-  transition: all 0.3s ease !important;
-  border-radius: 8px !important;
-  margin: 4px 0 !important;
-  padding: 16px !important;
-}
-
-.ant-list-item:hover {
-  background: rgba(24, 144, 255, 0.05) !important;
-  transform: translateX(4px) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-}
-
-/* 标签动画效果 */
+/* 标签样式 */
 .ant-tag {
+  border-radius: 4px !important;
   transition: all 0.3s ease !important;
 }
 
@@ -737,9 +495,11 @@ html[data-theme] body.has-background-image .video-card.ant-card:hover {
   transform: scale(1.05) !important;
 }
 
-/* 空状态动画 */
+/* 空状态样式 */
 .ant-empty {
-  animation: fadeInUp 0.8s ease !important;
+  padding: 60px 20px;
+  text-align: center;
+  animation: fadeInUp 0.6s ease;
 }
 
 @keyframes fadeInUp {
@@ -753,160 +513,143 @@ html[data-theme] body.has-background-image .video-card.ant-card:hover {
   }
 }
 
-/* 进度条动画增强 */
+/* Logo容器样式 */
+.logo-container {
+  padding: 16px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.logo-container h3 {
+  margin: 0;
+  font-weight: 600;
+  color: var(--primary-color);
+  transition: all 0.3s ease;
+}
+
+/* 主题相关样式 */
+body.has-background-image {
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+body.has-background-image .ant-layout-sider {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+body.has-background-image .ant-layout-header {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+body.has-background-image .ant-layout-content {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+body.has-background-image .video-card.ant-card,
+body.has-background-image .ant-card.video-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+body.has-background-image .ant-card:not(.video-card) {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* 播放覆盖层 */
+.play-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  opacity: 0;
+  border-radius: 8px 8px 0 0;
+}
+
+.video-card:hover .play-overlay {
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 1;
+}
+
+.play-overlay .anticon {
+  font-size: 40px;
+  color: #fff;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+  transition: transform 0.3s ease;
+}
+
+.video-card:hover .play-overlay .anticon {
+  transform: scale(1.1);
+}
+
+/* 列表项样式 */
+.ant-list-item {
+  transition: all 0.3s ease !important;
+  border-radius: 8px !important;
+  margin: 4px 0 !important;
+  padding: 16px !important;
+}
+
+.ant-list-item:hover {
+  background: rgba(24, 144, 255, 0.05) !important;
+  transform: translateX(4px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* 进度条样式 */
 .ant-progress-line {
   transition: all 0.3s ease !important;
 }
 
 .ant-progress-bg {
   background: linear-gradient(90deg, var(--primary-color), var(--accent-color)) !important;
-  animation: progressGlow 2s ease-in-out infinite alternate !important;
 }
 
-@keyframes progressGlow {
-  from {
-    box-shadow: 0 0 5px rgba(24, 144, 255, 0.3);
-  }
-  to {
-    box-shadow: 0 0 20px rgba(24, 144, 255, 0.6);
-  }
-}
-
-/* 头部标题动画 */
-.ant-layout-header h2 {
-  position: relative !important;
-  transition: all 0.3s ease !important;
-}
-
-.ant-layout-header h2::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
-  transition: width 0.4s ease;
-}
-
-.ant-layout-header:hover h2::after {
-  width: 100%;
-}
-
-/* 主题预览卡片特殊效果 */
-.theme-preview-card {
-  position: relative !important;
-  overflow: hidden !important;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-}
-
-.theme-preview-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.6s ease;
-  z-index: 1;
-}
-
-.theme-preview-card:hover::before {
-  left: 100%;
-}
-
-.theme-preview-card:hover {
-  transform: translateY(-4px) !important;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15) !important;
-}
-
-/* 背景图片模式下的增强效果 */
-body.has-background-image {
-  backdrop-filter: blur(0px) !important;
-}
-
-body.has-background-image .ant-layout-content {
-  backdrop-filter: blur(6px) saturate(130%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-}
-
-body.has-background-image .ant-layout-sider {
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.3) !important;
-}
-
-/* 加载动画优化 */
-.ant-spin-dot {
-  animation: spinRotate 1.2s infinite linear, spinGlow 2s ease-in-out infinite alternate !important;
-}
-
-@keyframes spinGlow {
-  from {
-    filter: drop-shadow(0 0 2px rgba(24, 144, 255, 0.3));
-  }
-  to {
-    filter: drop-shadow(0 0 8px rgba(24, 144, 255, 0.8));
-  }
-}
-
-/* 响应式优化 */
+/* 响应式设计 */
 @media (max-width: 768px) {
   .video-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
-    gap: 12px !important;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
   }
   
   .category-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
-    gap: 12px !important;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  
+  .ant-layout-content {
+    margin: 8px;
+    padding: 16px;
   }
   
   .video-card.ant-card:hover {
-    transform: translateY(-4px) scale(1.01) !important;
+    transform: translateY(-2px) !important;
   }
 }
 
-/* 历史列表动画 */
-.history-list .history-item {
-  animation: slideInLeft 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-  opacity: 0;
-  transform: translateX(-30px);
-}
-
-@keyframes slideInLeft {
-  to {
-    opacity: 1;
-    transform: translateX(0);
+@media (max-width: 480px) {
+  .video-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
   }
-}
-
-/* 分类卡片特殊效果 */
-.category-card {
-  position: relative !important;
-  overflow: hidden !important;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-}
-
-.category-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.6s ease;
-  z-index: 1;
-}
-
-.category-card:hover::before {
-  left: 100%;
-}
-
-.category-card:hover {
-  transform: translateY(-4px) scale(1.02) !important;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15) !important;
+  
+  .category-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
 
 /* 滚动条美化 */
@@ -916,216 +659,64 @@ body.has-background-image .ant-layout-sider {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
+  background: #f1f1f1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  background: linear-gradient(135deg, rgba(24, 144, 255, 0.6), rgba(24, 144, 255, 0.4));
   border-radius: 4px;
   transition: all 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+  background: linear-gradient(135deg, rgba(24, 144, 255, 0.8), rgba(24, 144, 255, 0.6));
 }
 
-/* 播放悬停效果样式 */
-.ant-card:hover .play-overlay {
-  opacity: 1 !important;
-  background: rgba(0, 0, 0, 0.4) !important;
+/* 设置页面样式 */
+.settings-section {
+  margin-bottom: 32px;
 }
 
-.play-overlay {
+.settings-section h3 {
+  margin-bottom: 16px;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* 主题预览卡片 */
+.theme-preview-card {
+  transition: all 0.3s ease !important;
+  cursor: pointer;
+}
+
+.theme-preview-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 历史记录列表 */
+.history-list .history-item {
+  animation: slideInLeft 0.6s ease forwards;
   opacity: 0;
-  transition: all 0.3s ease !important;
-  background: rgba(0, 0, 0, 0) !important;
+  transform: translateX(-20px);
 }
 
-/* 剧集视频卡片按钮优化 */
-.ant-card-actions {
-  background: #fafafa !important;
-  border-top: 1px solid #f0f0f0 !important;
-  padding: 8px 12px !important;
-}
-
-.ant-card-actions > li {
-  margin: 0 !important;
-  padding: 0 4px !important;
-}
-
-.ant-card-actions .ant-btn {
-  width: 100% !important;
-  border-radius: 6px !important;
-  font-size: 12px !important;
-  height: 32px !important;
-  border: 1px solid #d9d9d9 !important;
-  background: #fff !important;
-  transition: all 0.2s ease !important;
-}
-
-.ant-card-actions .ant-btn:hover {
-  border-color: #1890ff !important;
-  color: #1890ff !important;
-  background: #f6f9ff !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2) !important;
-}
-
-/* ===== 封面图片优化样式 ===== */
-
-/* 视频卡片封面容器优化 */
-.video-card .ant-card-cover {
-  position: relative !important;
-  overflow: hidden !important;
-  border-radius: 6px 6px 0 0 !important;
-  background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%) !important;
-}
-
-/* 视频缩略图通用样式 */
-.video-thumbnail {
-  width: 100% !important;
-  object-fit: cover !important;
-  object-position: center center !important;
-  display: block !important;
-  transition: transform 0.3s ease, filter 0.3s ease !important;
-  background: #f5f5f5 !important;
-}
-
-/* 视频卡片悬停效果 */
-.video-card:hover .video-thumbnail {
-  transform: scale(1.05) !important;
-  filter: brightness(1.1) saturate(1.1) !important;
-}
-
-/* 剧集卡片封面容器 */
-.video-card .ant-card-cover div[style*="height: 120"] {
-  border-radius: 6px 6px 0 0 !important;
-  overflow: hidden !important;
-}
-
-/* 详情页主封面容器 */
-.video-detail-cover {
-  border-radius: 8px !important;
-  overflow: hidden !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
-}
-
-.video-detail-cover:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
-}
-
-/* 封面加载状态和占位符优化 */
-.video-thumbnail-placeholder {
-  background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  position: relative !important;
-}
-
-.video-thumbnail-placeholder::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
-  animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-/* 不同长宽比封面的适配 - 移除严格高度限制 */
-
-/* 封面标签悬浮优化 */
-.video-card .ant-tag {
-  backdrop-filter: blur(4px) !important;
-  background: rgba(24, 144, 255, 0.9) !important;
-  border: none !important;
-  color: white !important;
-  font-weight: 500 !important;
-  border-radius: 4px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
-}
-
-/* 播放悬停遮罩层优化 */
-.play-overlay {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  background: rgba(0, 0, 0, 0) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: all 0.3s ease !important;
-  opacity: 0 !important;
-  border-radius: 6px 6px 0 0 !important;
-}
-
-.video-card:hover .play-overlay {
-  background: rgba(0, 0, 0, 0.4) !important;
-  opacity: 1 !important;
-  backdrop-filter: blur(2px) !important;
-}
-
-.play-overlay .anticon {
-  font-size: 40px !important;
-  color: #fff !important;
-  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.8)) !important;
-  transform: scale(0.8) !important;
-  transition: transform 0.3s ease !important;
-}
-
-.video-card:hover .play-overlay .anticon {
-  transform: scale(1) !important;
-}
-
-/* 响应式封面适配 - 简化版本 */
-@media (max-width: 768px) {
-  .video-detail-cover img {
-    width: 120px !important;
-    height: 160px !important;
+@keyframes slideInLeft {
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
-/* 图片加载失败样式 */
-.video-thumbnail[src=""],
-.video-thumbnail:not([src]) {
-  background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+/* 加载动画优化 */
+.ant-spin-dot {
+  animation: antSpinMove 1s infinite linear;
 }
 
-/* 高质量图片显示 */
-.video-thumbnail {
-  image-rendering: optimizeQuality !important;
-}
-
-/* 防止图片拖拽 */
-.video-thumbnail {
-  user-select: none !important;
-  -webkit-user-drag: none !important;
-}
-
-/* 确保封面容器不会产生滚动条 */
-.video-card .ant-card-cover,
-.video-card .ant-card-cover > div {
-  overflow: hidden !important;
-}
-
-/* 剧集卡片特殊样式 - 重置高度限制 */
-.video-card .ant-card-cover img.video-thumbnail {
-  height: auto !important;
-  min-height: inherit !important;
-  max-height: inherit !important;
+@keyframes antSpinMove {
+  to {
+    opacity: 1;
+  }
 }

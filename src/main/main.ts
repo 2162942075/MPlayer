@@ -1,7 +1,7 @@
 import { app, BrowserWindow, Menu, ipcMain, dialog, protocol } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
-import { isDev } from './utils';
+import { isDev, logger } from './utils';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -20,6 +20,7 @@ function createWindow(): void {
     height: 800,
     minWidth: 800,
     minHeight: 600,
+    icon: path.join(__dirname, isDev ? '../../icons/video-manager.ico' : '../icons/video-manager.ico'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -77,19 +78,19 @@ import { spawn } from 'child_process';
 
 // 初始化数据库
 database.init().then(async () => {
-  console.log('数据库初始化完成');
+  logger.info('数据库初始化完成');
   // 初始化主题数据
   await database.initThemes();
-  console.log('主题初始化完成');
+  logger.info('主题初始化完成');
   
   // 预加载清理规则缓存
   await getCachedCleaningRules();
-  console.log('清理规则缓存已预加载');
+  logger.info('清理规则缓存已预加载');
   
   // 自动扫描管理器已经在其构造函数中自动初始化
-  console.log('自动扫描管理器已初始化');
+  logger.info('自动扫描管理器已初始化');
 }).catch((error) => {
-  console.error('初始化失败:', error);
+  logger.error('初始化失败:', error);
 });
 
 // IPC 处理器
@@ -117,12 +118,12 @@ ipcMain.handle('save-category', async (_, category) => {
     // 刷新自动扫描监听器（包含新分类）
     if (category.id && category.path) {
       await autoScanManager.refreshWatchers();
-      console.log('已刷新自动扫描监听器，包含新分类:', category.name);
+      logger.info('已刷新自动扫描监听器，包含新分类:', category.name);
     }
     
     return { success: true };
   } catch (error) {
-    console.error('保存分类失败:', error);
+    logger.error('保存分类失败:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 });
@@ -209,6 +210,60 @@ ipcMain.handle('scan-videos', async (_, categoryId: string) => {
     
     console.log('共保存了', coverMap.size, '个封面信息，', userDataMap.size, '个用户数据');
 
+    // 🔥 更安全的方案：先清理不存在的文件，再扫描新文件
+    console.log('🔍 开始检查数据库中现有视频文件的存在性...');
+    
+    const currentVideos = await database.getVideosByCategory(categoryId);
+    const toDelete: string[] = [];
+    const validExistingVideos: any[] = [];
+    
+    // 检查现有视频文件是否还存在
+    for (const video of currentVideos) {
+      let shouldKeep = false;
+      
+      if (video.isDirectory) {
+        // 如果是目录，检查目录是否存在
+        if (fs.existsSync(video.path)) {
+          shouldKeep = true;
+          // 同时检查目录下的剧集文件
+          if (video.episodes && video.episodes.length > 0) {
+            const validEpisodes = video.episodes.filter(episode => fs.existsSync(episode.path));
+            if (validEpisodes.length !== video.episodes.length) {
+              console.log(`📁 ${video.title}: 移除 ${video.episodes.length - validEpisodes.length} 个不存在的剧集`);
+              video.episodes = validEpisodes;
+              // 需要更新数据库
+              await database.saveVideoInfo(video);
+            }
+          }
+        }
+      } else {
+        // 如果是单个文件，检查文件是否存在
+        if (fs.existsSync(video.path)) {
+          shouldKeep = true;
+        }
+      }
+      
+      if (shouldKeep) {
+        validExistingVideos.push(video);
+        console.log(`✅ 保留存在的文件: ${video.title}`);
+      } else {
+        toDelete.push(video.id);
+        console.log(`❌ 标记删除不存在的文件: ${video.title} (${video.path})`);
+      }
+    }
+    
+    // 从数据库中删除不存在的文件记录
+    if (toDelete.length > 0) {
+      console.log(`🗑️ 从数据库删除 ${toDelete.length} 个不存在的文件记录...`);
+      for (const videoId of toDelete) {
+        // 我们需要实现一个删除单个视频的方法
+        await database.deleteVideoById(videoId);
+      }
+      console.log('✅ 不存在的文件记录已清理');
+    } else {
+      console.log('✅ 所有现有文件都存在，无需清理');
+    }
+
     const maxDepth = await database.getSetting('scanDepth', 3);
     
     // 设置扫描进度回调
@@ -224,17 +279,76 @@ ipcMain.handle('scan-videos', async (_, categoryId: string) => {
       }
     });
     
-    const videos = await videoScanner.scanDirectory(category.path, categoryId, maxDepth);
+    console.log('📂 开始扫描新增和变化的文件...');
+    const scannedVideos = await videoScanner.scanDirectory(category.path, categoryId, maxDepth);
     
     // 清除进度回调
     videoScanner.setProgressCallback(undefined);
     
+    // 🔥 找出真正新增的视频（避免重复保存）
+    const existingVideoIds = new Set(validExistingVideos.map(v => v.id));
+    const existingVideoPaths = new Set(validExistingVideos.map(v => v.path));
+    
+    // 🔥 同时收集所有剧集的ID和路径
+    for (const video of validExistingVideos) {
+      if (video.episodes) {
+        for (const episode of video.episodes) {
+          existingVideoIds.add(episode.id);
+          existingVideoPaths.add(episode.path);
+        }
+      }
+    }
+    
+    // 🔥 修复：过滤重复视频，不仅基于ID，还基于路径
+    const newVideos = scannedVideos.filter(video => {
+      // 检查主视频ID和路径是否已存在
+      if (existingVideoIds.has(video.id)) {
+        return false;
+      }
+      
+      // 🔥 重要：检查相同路径是否已存在（处理ID变化的情况）
+      if (existingVideoPaths.has(video.path)) {
+        console.log(`⚠️ 发现相同路径的主视频，跳过: ${video.title} (${video.path})`);
+        return false;
+      }
+      
+      // 🔥 检查剧集是否重复
+      if (video.episodes) {
+        const validEpisodes = video.episodes.filter(episode => {
+          if (existingVideoIds.has(episode.id)) {
+            return false;
+          }
+          if (existingVideoPaths.has(episode.path)) {
+            console.log(`⚠️ 发现相同路径的剧集，跳过: ${episode.title} (${episode.path})`);
+            return false;
+          }
+          return true;
+        });
+        
+        // 如果所有剧集都被过滤掉了，那么这个主视频也不需要
+        if (validEpisodes.length === 0) {
+          console.log(`⚠️ 主视频的所有剧集都已存在，跳过整个主视频: ${video.title}`);
+          return false;
+        }
+        
+        // 更新剧集列表
+        video.episodes = validEpisodes;
+      }
+      
+      return true;
+    });
+    
+    console.log(`📊 扫描结果统计:`);
+    console.log(`  📁 保留现有视频: ${validExistingVideos.length} 个`);
+    console.log(`  🆕 发现新增视频: ${newVideos.length} 个`);
+    console.log(`  🗑️ 删除无效记录: ${toDelete.length} 个`);
+    
     // 🔥 恢复用户数据到新扫描的视频
-    for (const video of videos) {
+    for (const video of newVideos) {
       // 恢复封面
       if (coverMap.has(video.id)) {
         video.thumbnail = coverMap.get(video.id);
-        console.log('恢复封面信息 - 主视频:', video.id, video.title);
+        console.log('恢复封面信息 - 新视频:', video.id, video.title);
       }
       
       // 🔥 恢复用户数据（标签、评分等）
@@ -246,7 +360,7 @@ ipcMain.handle('scan-videos', async (_, categoryId: string) => {
         video.watchStatus = userData.watchStatus || video.watchStatus;
         (video as any).lastWatchedAt = userData.lastWatchedAt;
         (video as any).watchProgress = userData.watchProgress;
-        console.log('恢复用户数据 - 主视频:', video.id, video.title, '标签数量:', video.tags?.length || 0);
+        console.log('恢复用户数据 - 新视频:', video.id, video.title, '标签数量:', video.tags?.length || 0);
       }
       
       // 恢复剧集的数据
@@ -255,7 +369,7 @@ ipcMain.handle('scan-videos', async (_, categoryId: string) => {
           // 恢复剧集封面
           if (coverMap.has(episode.id)) {
             episode.thumbnail = coverMap.get(episode.id);
-            console.log('恢复封面信息 - 剧集:', episode.id, episode.title);
+            console.log('恢复封面信息 - 新剧集:', episode.id, episode.title);
           }
           
           // 🔥 恢复剧集用户数据
@@ -267,26 +381,73 @@ ipcMain.handle('scan-videos', async (_, categoryId: string) => {
             episode.watchStatus = userData.watchStatus || episode.watchStatus;
             (episode as any).lastWatchedAt = userData.lastWatchedAt;
             (episode as any).watchProgress = userData.watchProgress;
-            console.log('恢复用户数据 - 剧集:', episode.id, episode.title, '标签数量:', episode.tags?.length || 0);
+            console.log('恢复用户数据 - 新剧集:', episode.id, episode.title, '标签数量:', episode.tags?.length || 0);
           }
         }
       }
     }
     
     console.log('用户数据恢复完成');
-    
-    // 🔥 智能更新而不是清除重建：保留用户的虚拟重命名等数据
-    console.log('🔄 开始智能更新视频数据（保留虚拟重命名）...');
-    
-    // 保存或更新新扫描的视频（智能合并，保留虚拟重命名）
-    console.log(`📦 准备保存 ${videos.length} 个视频项目...`);
-    for (const video of videos) {
-      await database.saveVideoInfo(video);
+
+    // 保存新增的视频
+    if (newVideos.length > 0) {
+      console.log(`📦 保存 ${newVideos.length} 个新增视频...`);
+      for (const video of newVideos) {
+        await database.saveVideoInfo(video);
+      }
+      console.log('✅ 新增视频保存完成');
     }
     
-    console.log('✅ 智能视频数据更新完成');
+    // 🔥 检查并更新现有视频的NFO数据
+    console.log('🔍 检查现有视频的NFO数据更新...');
+    let nfoUpdatedCount = 0;
+    for (const scannedVideo of scannedVideos) {
+      const existingVideo = validExistingVideos.find(v => v.id === scannedVideo.id);
+      if (existingVideo) {
+        // 比较NFO数据是否有变化
+        const existingNFO = existingVideo.nfoData;
+        const scannedNFO = scannedVideo.nfoData;
+        
+        // 如果扫描到的视频有NFO数据，但现有视频没有，或者NFO内容有变化
+        if (scannedNFO && (!existingNFO || JSON.stringify(existingNFO) !== JSON.stringify(scannedNFO))) {
+          console.log(`🔄 更新NFO数据: ${existingVideo.title}`);
+          existingVideo.nfoData = scannedNFO;
+          await database.saveVideoInfo(existingVideo);
+          nfoUpdatedCount++;
+        }
+        
+        // 同样检查剧集的NFO数据
+        if (existingVideo.episodes && scannedVideo.episodes) {
+          for (let i = 0; i < existingVideo.episodes.length; i++) {
+            const existingEpisode = existingVideo.episodes[i];
+            const scannedEpisode = scannedVideo.episodes.find(ep => ep.id === existingEpisode.id);
+            
+            if (scannedEpisode && scannedEpisode.nfoData && 
+                (!existingEpisode.nfoData || JSON.stringify(existingEpisode.nfoData) !== JSON.stringify(scannedEpisode.nfoData))) {
+              console.log(`🔄 更新剧集NFO数据: ${existingEpisode.title}`);
+              existingEpisode.nfoData = scannedEpisode.nfoData;
+            }
+          }
+          
+                     // 如果有剧集NFO更新，保存整个视频对象
+           if (existingVideo.episodes.some((ep: any) => scannedVideo.episodes?.find((sep: any) => sep.id === ep.id && sep.nfoData))) {
+             await database.saveVideoInfo(existingVideo);
+           }
+        }
+      }
+    }
     
-    return videos;
+    if (nfoUpdatedCount > 0) {
+      console.log(`✅ 更新了 ${nfoUpdatedCount} 个视频的NFO数据`);
+    } else {
+      console.log('✅ 所有现有视频的NFO数据都是最新的');
+    }
+    
+    // 返回所有有效视频（现有的 + 新增的）
+    const allValidVideos = [...validExistingVideos, ...newVideos];
+    console.log(`✅ 扫描完成，当前分类共有 ${allValidVideos.length} 个有效视频`);
+    
+    return allValidVideos;
   } catch (error) {
     console.error('扫描视频失败:', error);
     return [];
@@ -865,6 +1026,126 @@ ipcMain.handle('has-nfo-file', async (_, videoPath: string) => {
   }
 });
 
+// 修复所有视频的NFO数据
+ipcMain.handle('fix-nfo-data', async (_, categoryId: string) => {
+  try {
+    console.log('🔧 开始修复NFO数据，分类:', categoryId);
+    const { NFOParser } = await import('./nfoParser');
+    
+    // 获取该分类的所有视频
+    const videos = await database.getVideosByCategory(categoryId);
+    let fixedCount = 0;
+    let totalCount = 0;
+    
+    for (const video of videos) {
+      totalCount++;
+      try {
+        // 查找NFO文件
+        const nfoPath = NFOParser.findNFOFile(video.path);
+        if (nfoPath) {
+          // 重新解析NFO文件
+          const nfoData = await NFOParser.parseNFO(nfoPath);
+          if (nfoData) {
+            // 更新数据库中的NFO数据
+            const updatedVideo = { ...video, nfoData };
+            await database.saveVideoInfo(updatedVideo);
+            fixedCount++;
+            console.log(`✅ 修复NFO数据: ${video.title}`);
+          }
+        }
+      } catch (error) {
+        console.error(`❌ 修复NFO数据失败: ${video.title}`, error);
+      }
+    }
+    
+    console.log(`🎉 NFO数据修复完成: ${fixedCount}/${totalCount}`);
+    return { success: true, fixedCount, totalCount };
+  } catch (error) {
+    console.error('修复NFO数据失败:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+// 添加NFO扫描诊断功能
+ipcMain.handle('diagnose-nfo-scan', async (_, categoryId: string) => {
+  try {
+    console.log('🔍 开始NFO扫描诊断，分类:', categoryId);
+    const { NFOParser } = await import('./nfoParser');
+    const fs = await import('fs');
+    const path = await import('path');
+    
+    // 获取该分类的所有视频
+    const videos = await database.getVideosByCategory(categoryId);
+    const diagnosis: any[] = [];
+    
+    console.log(`📊 开始诊断 ${videos.length} 个视频的NFO情况`);
+    
+    for (const video of videos) {
+      const videoInfo: any = {
+        videoTitle: video.title,
+        videoPath: video.path,
+        isDirectory: video.isDirectory,
+        hasNFOInDatabase: !!video.nfoData,
+        nfoFileFound: false,
+        nfoFilePath: '',
+        nfoFileExists: false,
+        nfoParseSuccess: false,
+        nfoData: null as any,
+        actors: [] as string[],
+        error: ''
+      };
+      
+      try {
+        // 查找NFO文件
+        const nfoPath = NFOParser.findNFOFile(video.path);
+        if (nfoPath) {
+          videoInfo.nfoFileFound = true;
+          videoInfo.nfoFilePath = nfoPath;
+          videoInfo.nfoFileExists = fs.existsSync(nfoPath);
+          
+          if (videoInfo.nfoFileExists) {
+            // 尝试解析NFO文件
+            const nfoData = await NFOParser.parseNFO(nfoPath);
+            if (nfoData) {
+              videoInfo.nfoParseSuccess = true;
+              videoInfo.nfoData = nfoData;
+              videoInfo.actors = nfoData.actors || [];
+            }
+          }
+        }
+      } catch (error) {
+        videoInfo.error = error instanceof Error ? error.message : String(error);
+      }
+      
+      diagnosis.push(videoInfo);
+      console.log(`🔍 诊断完成: ${video.title} - NFO找到:${videoInfo.nfoFileFound} 解析成功:${videoInfo.nfoParseSuccess}`);
+    }
+    
+    // 统计信息
+    const stats = {
+      totalVideos: videos.length,
+      videosWithNFOInDB: diagnosis.filter(d => d.hasNFOInDatabase).length,
+      nfoFilesFound: diagnosis.filter(d => d.nfoFileFound).length,
+      nfoFilesExist: diagnosis.filter(d => d.nfoFileExists).length,
+      nfoParseSuccess: diagnosis.filter(d => d.nfoParseSuccess).length,
+      totalActors: [...new Set(diagnosis.flatMap(d => d.actors))].length
+    };
+    
+    console.log('📊 NFO诊断统计:', stats);
+    
+    return { 
+      success: true, 
+      diagnosis, 
+      stats,
+      missingNFOVideos: diagnosis.filter(d => !d.nfoFileFound),
+      failedParseVideos: diagnosis.filter(d => d.nfoFileFound && !d.nfoParseSuccess)
+    };
+  } catch (error) {
+    console.error('NFO扫描诊断失败:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
 // 主题管理
 ipcMain.handle('get-themes', async () => {
   try {
@@ -1435,7 +1716,7 @@ ipcMain.handle('execute-rename', async (_, ruleId: string, previewResults: any[]
             // 虚拟重命名：只更新数据库中的显示名称
             console.log(`🎭 [${currentIndex}/${totalFiles}] 虚拟重命名：${path.basename(preview.originalPath)}`);
             
-            const displayName = path.basename(preview.newName, path.extname(preview.newName));
+            const displayName = getPathNameWithoutExt(preview.newName);
             // 🔥 修复：虚拟重命名必须使用立即写入，避免批量操作时的数据竞争条件
             await database.updateVideoDisplayName(preview.videoId, displayName, true);
             
@@ -1545,7 +1826,7 @@ ipcMain.handle('execute-rename', async (_, ruleId: string, previewResults: any[]
             // 🔥 修复：物理重命名后，无论是否有NFO都应该更新标题为新文件名
             // 用户重命名就是想要显示新的名字，NFO只用于提供额外信息
             if (beforeVideo) {
-              const newFileName = path.basename(newPath, path.extname(newPath));
+              const newFileName = getPathNameWithoutExt(newPath);
               
               if (beforeVideo.title !== newFileName) {
                 console.log(`💾 [${currentIndex}/${totalFiles}] 同步更新标题: "${beforeVideo.title}" -> "${newFileName}"`);
@@ -1793,7 +2074,7 @@ ipcMain.handle('revert-rename', async (_, historyId: string) => {
     
     if (history.mode === 'virtual') {
       // 虚拟重命名回退：恢复原始显示名称
-      const originalName = path.basename(history.originalPath, path.extname(history.originalPath));
+      const originalName = getPathNameWithoutExt(history.originalPath);
       await database.updateVideoDisplayName(history.videoId, originalName);
       console.log('  虚拟重命名回退完成');
     } else {
@@ -1822,7 +2103,7 @@ ipcMain.handle('revert-rename', async (_, historyId: string) => {
         
         // 🔥 修复：物理回退后，也要同步更新标题为原始文件名
         // 保持与重命名逻辑的一致性，用户看到的标题应该跟随文件名
-        const originalFileName = path.basename(originalPath, path.extname(originalPath));
+        const originalFileName = getPathNameWithoutExt(originalPath);
         await database.updateVideoDisplayName(history.videoId, originalFileName);
         console.log('  数据库标题回退完成');
         
@@ -1975,6 +2256,24 @@ function refreshCleaningRulesCache(): void {
   cacheLastUpdated = 0;
 }
 
+// 智能路径名解析辅助函数 - 修复目录名中.com被误认为扩展名的问题
+function getPathNameWithoutExt(fullPath: string): string {
+  const path = require('path');
+  
+  // 对于目录路径，直接使用 basename，不移除扩展名
+  // 因为目录名中的 .com 等不是真正的文件扩展名
+  let nameWithoutExt = path.basename(fullPath);
+  
+  // 如果是文件路径（有真正的视频文件扩展名），才移除扩展名
+  const videoExts = ['.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm', '.m4v', '.3gp', '.ts', '.m2ts'];
+  const ext = path.extname(fullPath);
+  if (videoExts.includes(ext.toLowerCase())) {
+    nameWithoutExt = path.basename(fullPath, ext);
+  }
+  
+  return nameWithoutExt;
+}
+
 // 智能的文件名解析辅助函数
 async function extractTitle(fileName: string): Promise<string> {
   let title = fileName;
@@ -2043,9 +2342,9 @@ async function extractTitle(fileName: string): Promise<string> {
       console.log('❌ 清理后结果为空，使用备用方案');
       // 直接移除所有括号，保留剩余内容
       title = fileName.replace(/[【\[（\(][^】\]）\)]*[】\]）\)]/g, '').trim();
-      // 如果还是太短，取前20个字符
+      // 如果还是为空，使用完整文件名
       if (title.length < 1) {
-        title = fileName.substring(0, 20);
+        title = fileName; // ✅ 使用完整文件名，不再截断
       }
     }
     
@@ -2057,7 +2356,7 @@ async function extractTitle(fileName: string): Promise<string> {
     // 备用逻辑：简单的括号移除
     title = fileName.replace(/[【\[（\(][^】\]）\)]*[】\]）\)]/g, '').trim();
     if (title.length < 1) {
-      title = fileName.substring(0, 20);
+      title = fileName; // ✅ 使用完整文件名，不再截断
     }
     
     return title;

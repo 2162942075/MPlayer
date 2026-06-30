@@ -287,14 +287,49 @@ class AutoScanManager {
       
       console.log(`现有视频: ${existingVideos.length} 个, 扫描发现: ${scannedVideos.length} 个`);
 
-      // 找出需要删除的视频（文件已不存在）
-      const videosToDelete = existingVideos.filter(video => !scannedPaths.has(video.path));
+      // 🔥 精确检查剧集级别的文件变化
+      const videosToDelete: any[] = [];
+      const videosToKeep: any[] = [];
+      let episodeDeleteCount = 0;
+      
+      for (const existingVideo of existingVideos) {
+        if (!scannedPaths.has(existingVideo.path)) {
+          // 主视频/目录不存在，整个删除
+          videosToDelete.push(existingVideo);
+        } else {
+          // 主视频/目录存在，检查剧集文件
+          let videoUpdated = false;
+          
+                     if (existingVideo.isDirectory && existingVideo.episodes && existingVideo.episodes.length > 0) {
+             // 对于剧集，检查每个单集文件是否还存在
+             const episodes = existingVideo.episodes as any[];
+             const validEpisodes = episodes.filter((episode: any) => {
+               const fs = require('fs');
+               return fs.existsSync(episode.path);
+             });
+             
+             if (validEpisodes.length !== episodes.length) {
+               const deletedCount = episodes.length - validEpisodes.length;
+               console.log(`📁 ${existingVideo.title}: 检测到 ${deletedCount} 个剧集文件被删除`);
+               (existingVideo as any).episodes = validEpisodes;
+               videoUpdated = true;
+               episodeDeleteCount += deletedCount;
+             }
+           }
+          
+          videosToKeep.push(existingVideo);
+          
+                     // 如果剧集有变化，需要更新数据库
+           if (videoUpdated) {
+             const episodeCount = (existingVideo as any).episodes?.length || 0;
+             console.log(`🔄 更新剧集信息: ${existingVideo.title} (剩余 ${episodeCount} 集)`);
+             await database.saveVideoInfo(existingVideo);
+           }
+        }
+      }
       
       // 找出需要添加的视频（新发现的文件）
       const videosToAdd = scannedVideos.filter(video => !existingPaths.has(video.path));
-      
-      // 保留现有数据的视频（文件仍存在，保留封面等用户设置）
-      const videosToKeep = existingVideos.filter(video => scannedPaths.has(video.path));
 
       console.log(`删除 ${videosToDelete.length} 个, 新增 ${videosToAdd.length} 个, 保留 ${videosToKeep.length} 个`);
 
@@ -312,16 +347,12 @@ class AutoScanManager {
           await database.saveVideoInfo(video);
         }
         
-        // 如果有视频被删除，需要重建数据（保留用户数据）
+        // 🔥 使用精确删除，避免清除所有数据
         if (videosToDelete.length > 0) {
-          await database.clearVideosForCategory(categoryId);
-          // 重新保存保留的视频（包含用户数据）
-          for (const video of videosToKeep) {
-            await database.saveVideoInfo(video);
-          }
-          // 保存新增的视频
-          for (const video of videosToAdd) {
-            await database.saveVideoInfo(video);
+          // 精确删除不存在的视频记录
+          for (const video of videosToDelete) {
+            console.log(`🗑️ 精确删除不存在的视频: ${video.title} (${video.id})`);
+            await database.deleteVideoById(video.id);
           }
         }
         

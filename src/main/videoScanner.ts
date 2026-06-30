@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { isVideoFile } from './utils';
+import { isVideoFile, logger } from './utils';
 import { database } from './database';
 import { NFOParser, NFOData } from './nfoParser';
 
@@ -37,11 +37,11 @@ export class VideoScanner {
       try {
         await fs.promises.access(dirPath);
       } catch {
-        console.warn('目录不存在', dirPath);
+        logger.warn('目录不存在', dirPath);
         return [];
       }
 
-      console.log(`开始扫描目录 ${dirPath}, 最大深度 ${maxDepth}`);
+      logger.scan(`开始扫描目录 ${dirPath}, 最大深度 ${maxDepth}`);
       
       // 重置计数
       this.scannedCount = 0;
@@ -52,7 +52,7 @@ export class VideoScanner {
       
       const results: VideoInfo[] = [];
       await this.scanRecursive(dirPath, categoryId, results, 0, maxDepth);
-      console.log(`扫描完成，共找到 ${results.length} 个视频项目`);
+      logger.scan(`扫描完成，共找到 ${results.length} 个视频项目`);
       
       // 扫描完成，发送完成信号清理进度条
       if (this.scanProgressCallback) {
@@ -67,7 +67,7 @@ export class VideoScanner {
       
       return results;
     } catch (error) {
-      console.error('扫描目录失败:', error);
+      logger.error('扫描目录失败:', error);
       
       // 扫描失败也要清理进度条
       if (this.scanProgressCallback) {
@@ -140,14 +140,14 @@ export class VideoScanner {
     if (currentDepth > maxDepth) return;
 
     try {
-      console.log(`扫描目录 [深度${currentDepth}]: ${dirPath}`);
+      logger.scan(`扫描目录 [深度${currentDepth}]: ${dirPath}`);
       
       // 报告进度
       this.reportProgress(dirPath);
       
       // 只对极端情况进行限制，保持文件完整性
       if (dirPath.length > 300) {
-        console.warn(`跳过路径过长的目录 ${dirPath.substring(0, 100)}...`);
+        logger.warn(`跳过路径过长的目录 ${dirPath.substring(0, 100)}...`);
         return;
       }
 
@@ -162,13 +162,13 @@ export class VideoScanner {
       try {
         entries = await Promise.race([readDirPromise, timeout]);
       } catch (error) {
-        console.warn(`跳过有问题的目录: ${dirPath} - ${error instanceof Error ? error.message : String(error)}`);
+        logger.warn(`跳过有问题的目录: ${dirPath} - ${error instanceof Error ? error.message : String(error)}`);
         return;
       }
       
       // 只跳过明显异常的大目录，保留大部分正常目录
       if (entries.length > 2000) {
-        console.warn(`跳过包含过多文件的目录 ${dirPath} (${entries.length}个条目)`);
+        logger.warn(`跳过包含过多文件的目录 ${dirPath} (${entries.length}个条目)`);
         return;
       }
       
@@ -528,8 +528,16 @@ export class VideoScanner {
   private generateStableId(filePath: string, categoryId: string): string {
     // 使用文件路径的相对路径部分来生成稳定的ID
     const normalizedPath = filePath.replace(/\\/g, '/');
-    const fileName = path.basename(filePath);
-    const fileNameWithoutExt = path.basename(filePath, path.extname(filePath));
+    
+    // 🔥 修复：使用与database.ts中一致的路径处理逻辑
+    let fileNameWithoutExt = path.basename(filePath);
+    
+    // 如果是文件路径（有真正的视频文件扩展名），才移除扩展名
+    const videoExts = ['.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm', '.m4v', '.3gp', '.ts', '.m2ts'];
+    const ext = path.extname(filePath);
+    if (videoExts.includes(ext.toLowerCase())) {
+      fileNameWithoutExt = path.basename(filePath, ext);
+    }
     
     // 创建一个基于路径的简单哈希
     let hash = 0;
@@ -593,22 +601,39 @@ export class VideoScanner {
     return `default-${ext}`;
   }
 
-  private async parseNFOForVideo(filePath: string): Promise<NFOData | undefined> {
+  // 安全的NFO解析方法，确保任何错误都不会中断扫描
+  private async safeParseNFOForVideo(filePath: string): Promise<NFOData | undefined> {
     try {
       // 查找对应的NFO文件
       const nfoPath = NFOParser.findNFOFile(filePath);
       if (!nfoPath) {
+        console.log(`🔍 [视频扫描] 未找到NFO文件: ${path.basename(filePath)}`);
         return undefined;
       }
       
+      console.log(`🔍 [视频扫描] 找到NFO文件: ${path.basename(nfoPath)} (对应视频: ${path.basename(filePath)})`);
+      
       // 解析NFO文件
       const nfoData = await NFOParser.parseNFO(nfoPath);
-      console.log(`成功解析NFO文件: ${nfoPath}`, nfoData);
-      return nfoData || undefined;
+      if (nfoData) {
+        console.log(`✅ [视频扫描] 成功解析NFO文件: ${path.basename(nfoPath)}`);
+        console.log(`🎬 [视频扫描] 标题: ${nfoData.originalTitle || '无'}`);
+        console.log(`🎬 [视频扫描] 制作公司: ${nfoData.studio || '无'}`);
+        console.log(`🎭 [视频扫描] 演员: ${nfoData.actors?.length || 0}人`);
+        return nfoData;
+      } else {
+        console.warn(`⚠️ [视频扫描] NFO文件存在但解析失败: ${path.basename(nfoPath)}`);
+        return undefined;
+      }
     } catch (error) {
-      console.error(`解析NFO文件失败 [${filePath}]:`, error);
+      console.error(`❌ [视频扫描] NFO解析异常，但继续扫描 [${path.basename(filePath)}]:`, error instanceof Error ? error.message : String(error));
       return undefined;
     }
+  }
+
+  // 旧方法保持兼容性
+  private async parseNFOForVideo(filePath: string): Promise<NFOData | undefined> {
+    return this.safeParseNFOForVideo(filePath);
   }
 }
 

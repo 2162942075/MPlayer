@@ -82,6 +82,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // NFO文件管理
   parseNFO: (videoPath: string) => ipcRenderer.invoke('parse-nfo', videoPath),
+  fixNFOData: (categoryId: string) => ipcRenderer.invoke('fix-nfo-data', categoryId),
+  diagnoseNFOScan: (categoryId: string) => ipcRenderer.invoke('diagnose-nfo-scan', categoryId),
   writeNFO: (nfoPath: string, nfoData: any, type?: 'movie' | 'tvshow') => 
     ipcRenderer.invoke('write-nfo', nfoPath, nfoData, type),
   createNFOPath: (videoPath: string) => ipcRenderer.invoke('create-nfo-path', videoPath),

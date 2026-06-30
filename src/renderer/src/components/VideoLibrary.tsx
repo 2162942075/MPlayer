@@ -63,6 +63,7 @@ const VideoLibrary: React.FC = () => {
   const [selectedVideo, setSelectedVideo] = useState<VideoInfo | null>(null);
   const [sortType, setSortType] = useState<'episode' | 'name' | 'original'>('episode');
   const [searchKeyword, setSearchKeyword] = useState<string>('');
+  const [episodeCovers, setEpisodeCovers] = useState<{[key: string]: 'horizontal' | 'vertical' | 'square'}>({});
   
   // 扫描进度状态
   const [scanProgress, setScanProgress] = useState<{
@@ -116,6 +117,13 @@ const VideoLibrary: React.FC = () => {
   // NFO数据状态
   const [nfoData, setNfoData] = useState<any>(null);
   const [loadingNfo, setLoadingNfo] = useState<boolean>(false);
+
+
+
+  // 监听selectedVideo状态变化
+  useEffect(() => {
+    console.log('🎬 selectedVideo状态变化:', selectedVideo?.title || 'null');
+  }, [selectedVideo]);
 
   // 新的标签筛选状态
   const [tagSearchKeyword, setTagSearchKeyword] = useState<string>('');
@@ -979,6 +987,31 @@ const VideoLibrary: React.FC = () => {
     return thumbnail;
   };
 
+  // 检测剧集封面图片比例
+  const detectEpisodeImageAspectRatio = (imageUrl: string, episodeId: string) => {
+    if (!imageUrl) return;
+    
+    const img = new window.Image();
+    img.onload = () => {
+      const aspectRatio = img.width / img.height;
+      let orientation: 'horizontal' | 'vertical' | 'square';
+      
+      if (aspectRatio > 1.3) {
+        orientation = 'horizontal'; // 横版，如16:9
+      } else if (aspectRatio < 0.8) {
+        orientation = 'vertical'; // 竖版，如2:3
+      } else {
+        orientation = 'square'; // 方形，如1:1
+      }
+      
+      setEpisodeCovers(prev => ({
+        ...prev,
+        [episodeId]: orientation
+      }));
+    };
+    img.src = imageUrl;
+  };
+
   const renderVideoCard = (video: VideoInfo) => {
     const coverSrc = getCoverImageSrc(video.thumbnail);
     const videoTags = getVideoAllTags(video);
@@ -992,51 +1025,52 @@ const VideoLibrary: React.FC = () => {
           border: selectedVideo?.id === video.id ? '2px solid #1890ff' : '1px solid #d9d9d9'
         }}
         cover={
-          <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '6px 6px 0 0' }}>
+          <div style={{ position: 'relative', height: '360px', overflow: 'hidden' }}>
             {coverSrc ? (
               <Image
                 src={coverSrc}
                 alt={video.title}
                 className="video-thumbnail"
                 preview={false}
-                style={{ 
-                  height: 200, 
-                  width: '100%', 
+                style={{
+                  width: '100%',
+                  height: '360px',
                   objectFit: 'cover',
-                  objectPosition: 'center center',
+                  objectPosition: 'center',
                   display: 'block'
                 }}
                 fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RUG8G+ECB0IHfMKYdRi25EQbZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQy6Eh4NuqefT+c///cz/f5Nla6v7pno2bfVvpfgKA/pRLhgAABAAAAIABAIDAAABAYCAAADAAAQCAgYAAgQAAw0AAKYCAAABhgAAAgQAAwEAAICAAQBgIAAgEAAACAAQBgIAAQCAAABAAADAAABBYCAAQCAAABAAADAAABAYCAAEBAAICAAQBgIAAQEAAACAAABAACAAABAAADBIABAEBAAACAAAABAAABAAADAQAAhYAAAICAAEBAACAAABAACAAABBYCAAQBgIAAQEAAACAAEBAACAAABAACAAABBYCAAQCAAABAAADAAABAYCAAEBAAACAAEBAACAAABAACAAABAYCAAQCAAABAAADAAABAYCAAEBAAICAAQBgIAAQEAAACAAABAACAAABAAAC/8v7j+x8vLy8v"
               />
             ) : (
               <div 
-                className="video-thumbnail video-thumbnail-placeholder"
-                style={{
-                  height: 200,
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: 'linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%)'
-                }}
+                className="video-thumbnail-placeholder"
+                data-text="暂无封面"
               >
-                {video.isDirectory ? <FolderOutlined style={{ fontSize: 48, color: '#999' }} /> : 
-                  <PlayCircleOutlined style={{ fontSize: 48, color: '#999' }} />}
+                {video.isDirectory ? 
+                  <FolderOutlined style={{ fontSize: 42, color: '#6c757d' }} /> : 
+                  <PlayCircleOutlined style={{ fontSize: 42, color: '#6c757d' }} />
+                }
               </div>
             )}
             {video.isDirectory && (
-              <Tag 
-                color="blue" 
+              <div 
                 style={{ 
                   position: 'absolute', 
                   top: 8, 
                   right: 8,
-                  backdropFilter: 'blur(4px)',
-                  background: 'rgba(24, 144, 255, 0.9)'
+                  background: '#1890ff',
+                  color: '#fff',
+                  padding: '3px 8px',
+                  borderRadius: '12px',
+                  fontSize: '11px',
+                  fontWeight: '500',
+                  zIndex: 10,
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
+                  lineHeight: '1.2'
                 }}
               >
                 {video.episodes?.length || 0} 集
-              </Tag>
+              </div>
             )}
           </div>
         }
@@ -1248,6 +1282,8 @@ const VideoLibrary: React.FC = () => {
               <Button type="primary" onClick={handleRefresh} loading={loading}>
                 重新扫描
           </Button>
+              
+              
               
               <Dropdown menu={{ items: videoActionsItems }} placement="bottomRight">
                 <Button>
@@ -2023,7 +2059,7 @@ const VideoLibrary: React.FC = () => {
                     alt={selectedVideo.title}
                     style={{ 
                       width: 150, 
-                      height: 200, 
+                      height: 200,
                       objectFit: 'cover',
                       objectPosition: 'center center',
                       borderRadius: 8,
@@ -2035,16 +2071,11 @@ const VideoLibrary: React.FC = () => {
                     <div 
                       className="video-thumbnail-placeholder"
                       style={{
-                      width: 150,
-                      height: 200,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      background: 'linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%)',
-                      borderRadius: 8,
-                      border: '2px dashed #d9d9d9'
-                    }}
-                  >
+                        width: 150,
+                        height: 200,
+                        borderRadius: 8
+                      }}
+                    >
                     {selectedVideo.isDirectory ? 
                       <FolderOutlined style={{ fontSize: 32, color: '#999' }} /> : 
                       <PlayCircleOutlined style={{ fontSize: 32, color: '#999' }} />
@@ -2622,8 +2653,8 @@ const VideoLibrary: React.FC = () => {
                 {/* 剧集网格 */}
                 <div style={{ 
                   display: 'grid', 
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', 
-                  gap: 12, 
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', 
+                  gap: 16, 
                   maxHeight: 'calc(100vh - 400px)',
                   overflowY: 'auto',
                   padding: '8px 0'
@@ -2637,7 +2668,7 @@ const VideoLibrary: React.FC = () => {
                 return (
                   <Card
                     key={episode.id}
-                    className="video-card"
+                    className={`episode-card ${episodeCovers[episode.id] || 'horizontal'}`}
                     size="small"
                     hoverable
                     style={{ 
@@ -2695,35 +2726,25 @@ const VideoLibrary: React.FC = () => {
                       }
                     }}
                     cover={
-                      <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '6px 6px 0 0' }}>
+                      <div style={{ position: 'relative' }}>
                         {finalCoverSrc ? (
                           <Image
                             src={finalCoverSrc}
                             alt={episode.title}
                             className="video-thumbnail"
-                            style={{ 
-                              height: 120, 
-                              width: '100%', 
-                              objectFit: 'cover',
-                              objectPosition: 'center center',
-                              display: 'block'
-                            }}
                             preview={false}
-                                fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RUG8G+ECB0IHfMKYdRi25EQbZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQy6Eh4NuqefT+c///cz/f5Nla6v7pno2bfVvpfgKA/pRLhgAABAAAAIABAIDAAABAYCAAADAAAQCAgYAAgQAAw0AAKYCAAABhgAAAgQAAwEAAICAAQBgIAAgEAAACAAQBgIAAQCAAABAAADAAABBYCAAQCAAABAAADAAABAYCAAEBAAICAAQBgIAAQEAAACAAABAACAAABAAADBIABAEBAAACAAAABAAABAAADAQAAhYAAAICAAEBAACAAABAACAAABBYCAAQBgIAAQEAAACAAEBAACAAABAACAAABBYCAAQCAAABAAADAAABAYCAAEBAAACAAEBAACAAABAACAAABAYCAAQCAAABAAADAAABAYCAAEBAAICAAQBgIAAQEAAACAAABAACAAABAAAC/8v7j+x8vLy8v"
+                            onLoad={() => {
+                              // 当图片加载完成后检测其比例
+                              detectEpisodeImageAspectRatio(finalCoverSrc, episode.id);
+                            }}
+                            fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RUG8G+ECB0IHfMKYdRi25EQbZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQ7ZEQy6Eh4NuqefT+c///cz/f5Nla6f7pno2bfVvpfgKA/pRLhgAABAAAAIABAIDAAABAYCAAADAAAQCAgYAAgQAAw0AAKYCAAABhgAAAgQAAwEAAICAAQBgIAAgEAAACAAQBgIAAQCAAABAAADAAABBYCAAQCAAABAAADAAABAYCAAEBAAICAAQBgIAAQEAAACAAABAACAAABAAADBIABAEBAAACAAAABAAABAAADAQAAhYAAAICAAEBAACAAABAACAAABBYCAAQBgIAAQEAAACAAEBAACAAABAACAAABBYCAAQCAAABAAADAAABAYCAAEBAAACAAEBAACAAABAACAAABAYCAAQCAAABAAADAAABAYCAAEBAAICAAQBgIAAQEAAACAAABAACAAABAAAC/8v7j+x8vLy8v"
                           />
                         ) : (
                           <div 
                             className="video-thumbnail-placeholder"
-                            style={{
-                              height: 120,
-                              width: '100%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              background: 'linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%)'
-                            }}
+                            data-text="暂无封面"
                           >
-                            <PlayCircleOutlined style={{ fontSize: 32, color: '#999' }} />
+                            <PlayCircleOutlined style={{ fontSize: 32, color: '#6c757d' }} />
                           </div>
                         )}
                         {/* 播放悬停提示 */}
@@ -2833,6 +2854,66 @@ const VideoLibrary: React.FC = () => {
             )}
 
 
+          </div>
+                )}
+      </Modal>
+
+      
+        
+               {/* 原始Ant Design Modal - 备用方案 */}
+        <Modal
+          title="🎬 修复后的视频详情"
+          open={false}
+          onCancel={() => {
+            setSelectedVideo(null);
+            setVideoMetadata(null);
+            setIsMetadataForSingleFile(false);
+            setNfoData(null);
+          }}
+          width={1000}
+          centered={true}
+          destroyOnClose={true}
+          maskClosable={true}
+          styles={{
+            body: { 
+              maxHeight: 'calc(100vh - 200px)', 
+              overflowY: 'auto' 
+            }
+          }}
+        >
+        {selectedVideo && (
+          <div>
+            {/* 简化的视频信息显示 */}
+            <div style={{ marginBottom: 16 }}>
+              <h3>🎬 视频详情</h3>
+              <p><strong>标题：</strong>{selectedVideo.title}</p>
+              <p><strong>路径：</strong>{selectedVideo.path}</p>
+              <p><strong>类型：</strong>{selectedVideo.isDirectory ? '剧集文件夹' : '视频文件'}</p>
+            </div>
+
+            {/* 操作按钮 */}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <Button 
+                type="primary"
+                icon={<PlayCircleOutlined />}
+                onClick={() => {
+                  console.log('🎮 播放按钮被点击');
+                  if (!selectedVideo.isDirectory) {
+                    handlePlay(selectedVideo.path, selectedVideo);
+                  }
+                }}
+                disabled={selectedVideo.isDirectory}
+              >
+                {selectedVideo.isDirectory ? '选择剧集播放' : '播放'}
+              </Button>
+              
+              <Button 
+                icon={<TagOutlined />}
+                onClick={() => handleAddTagsToVideo(selectedVideo)}
+              >
+                管理标签
+              </Button>
+            </div>
           </div>
         )}
       </Modal>
