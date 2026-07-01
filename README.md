@@ -13,6 +13,7 @@
 - CloudDrive2地址：https://github.com/cloud-fs/cloud-fs.github.io/releases
 - openlist地址：https://github.com/OpenListTeam/OpenList/releases
 - potplayer地址：https://potplayer.tv/?lang=zh_CN
+- 申请TMDB的api教程：https://www.bilibili.com/video/BV1c1421f7XM/?spm_id_from=333.337.search-card.all.click
 
 ## 核心能力
 
