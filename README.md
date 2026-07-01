@@ -8,6 +8,11 @@
 - 需要下载、转码、扫描、补全元数据的媒体整理用户
 
 ## 请使用Releases版本
+- 如想连接云盘需配合CloudDrive2或者openlist使用
+- 播放器最优的选择是potplayer
+- CloudDrive2地址：https://github.com/cloud-fs/cloud-fs.github.io/releases
+- openlist地址：https://github.com/OpenListTeam/OpenList/releases
+- potplayer地址：https://potplayer.tv/?lang=zh_CN
 
 ## 核心能力
 
