@@ -15,6 +15,12 @@
 - potplayer地址：https://potplayer.tv/?lang=zh_CN
 - 申请TMDB的api教程：https://www.bilibili.com/video/BV1c1421f7XM/?spm_id_from=333.337.search-card.all.click
 
+## 相关界面展示
+<img width="2548" height="1409" alt="IMG_20260709_215356" src="https://github.com/user-attachments/assets/56a03c08-10a0-4721-950b-100575320ef2" />
+
+
+
+
 ## 核心能力
 
 ### 1. 媒体库管理
