@@ -22,6 +22,8 @@
 <img width="2554" height="1401" alt="IMG_20260709_215536" src="https://github.com/user-attachments/assets/3037482d-3d1e-4214-9c7d-8dd228b7d827" />
 <img width="2555" height="1401" alt="IMG_20260709_215744" src="https://github.com/user-attachments/assets/e3e903db-95fc-41bd-aaff-c665da99422e" />
 <img width="2558" height="1406" alt="IMG_20260709_215645" src="https://github.com/user-attachments/assets/edd3ed88-40b1-4ce0-b98e-9c30283de13e" />
+<img width="2431" height="1263" alt="详情2" src="https://github.com/user-attachments/assets/999f4b94-5a9f-426a-8a71-090c13a167e4" />
+<img width="1024" height="1148" alt="详情1" src="https://github.com/user-attachments/assets/37c1f230-621f-4c2d-92f9-b10ce51b8855" />
 
 
 ## 核心能力
