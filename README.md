@@ -15,7 +15,7 @@
 - potplayer地址：https://potplayer.tv/?lang=zh_CN
 - 申请TMDB的api教程：https://www.bilibili.com/video/BV1c1421f7XM/?spm_id_from=333.337.search-card.all.click
 
-## 相关界面展示
+## 相关界面部分展示
 <img width="2548" height="1409" alt="IMG_20260709_215356" src="https://github.com/user-attachments/assets/56a03c08-10a0-4721-950b-100575320ef2" />
 <img width="2553" height="1411" alt="IMG_20260709_215500" src="https://github.com/user-attachments/assets/e8d70410-094a-4a35-8bd1-25c2624a9b67" />
 <img width="2560" height="1405" alt="IMG_20260709_215613" src="https://github.com/user-attachments/assets/11153a48-b7ee-4215-8519-8646d3ad9bc5" />
