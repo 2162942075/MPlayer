@@ -60,6 +60,7 @@ interface PlayHistory {
   duration?: number;
   isEpisode?: boolean;
   episodeTitle?: string;
+  thumbnail?: string;
 }
 
 interface ThemeConfig {
@@ -435,7 +436,18 @@ class Database {
   async getPlayHistory(limit: number = 20): Promise<PlayHistory[]> {
     return this.data.playHistory
       .sort((a, b) => b.playedAt - a.playedAt)
-      .slice(0, limit);
+      .slice(0, limit)
+      .map(history => {
+        const video = this.data.videos.find(item =>
+          item.id === history.videoId || item.episodes?.some(episode => episode.id === history.videoId)
+        );
+        const episode = video?.episodes?.find(item => item.id === history.videoId);
+
+        return {
+          ...history,
+          thumbnail: episode?.thumbnail || video?.thumbnail || history.thumbnail
+        };
+      });
   }
 
   async clearPlayHistory(): Promise<void> {
@@ -1096,4 +1108,4 @@ class Database {
 }
 
 export const database = new Database(); 
-export { VideoInfo, Category, PlayHistory, ThemeConfig, VideoTag, RenameRule, RenameHistory, ParsedFileInfo }; 
+export { VideoInfo, Category, PlayHistory, ThemeConfig, VideoTag, RenameRule, RenameHistory, ParsedFileInfo };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Empty, List, Avatar, Typography, Space, Popconfirm, message, Tag } from 'antd';
-import { PlayCircleOutlined, DeleteOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { PlayCircleOutlined, DeleteOutlined, PictureOutlined } from '@ant-design/icons';
 
 const { Text, Title } = Typography;
 
@@ -14,10 +14,12 @@ interface PlayHistory {
   duration?: number;
   isEpisode?: boolean;
   episodeTitle?: string;
+  thumbnail?: string;
 }
 
 const PlayHistory: React.FC = () => {
   const [playHistory, setPlayHistory] = useState<PlayHistory[]>([]);
+  const [posterCache, setPosterCache] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -27,8 +29,30 @@ const PlayHistory: React.FC = () => {
   const loadPlayHistory = async () => {
     setLoading(true);
     try {
-      const history = await (window as any).electronAPI?.getPlayHistory(50) || [];
+      const history: PlayHistory[] = await (window as any).electronAPI?.getPlayHistory(50) || [];
       setPlayHistory(history);
+
+      const posterPaths = [...new Set(history
+        .map(item => item.thumbnail)
+        .filter((thumbnail): thumbnail is string => Boolean(thumbnail) && !thumbnail.startsWith('default-'))
+      )];
+      const posterEntries = await Promise.all(posterPaths.map(async thumbnail => {
+        try {
+          return [
+            thumbnail,
+            thumbnail.startsWith('data:')
+              ? thumbnail
+              : await (window as any).electronAPI?.getImageAsDataUrl(thumbnail)
+          ] as const;
+        } catch {
+          return [thumbnail, null] as const;
+        }
+      }));
+      const cache: Record<string, string> = {};
+      for (const [thumbnail, source] of posterEntries) {
+        if (source) cache[thumbnail] = source;
+      }
+      setPosterCache(cache);
     } catch (error) {
       console.error('加载播放历史失败:', error);
     } finally {
@@ -93,6 +117,8 @@ const PlayHistory: React.FC = () => {
     return date.toLocaleDateString();
   };
 
+  const getPosterSrc = (thumbnail?: string) => thumbnail && posterCache[thumbnail];
+
   return (
     <div>
       <div style={{ 
@@ -155,8 +181,10 @@ const PlayHistory: React.FC = () => {
               <List.Item.Meta
                 avatar={
                   <Avatar 
-                    icon={<ClockCircleOutlined />} 
-                    style={{ backgroundColor: '#1890ff' }}
+                    className="history-poster"
+                    shape="square"
+                    src={getPosterSrc(item.thumbnail)}
+                    icon={<PictureOutlined />}
                   />
                 }
                 title={
@@ -188,4 +216,4 @@ const PlayHistory: React.FC = () => {
   );
 };
 
-export default PlayHistory; 
+export default PlayHistory;

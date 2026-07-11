@@ -703,6 +703,19 @@ body.has-background-image .ant-card:not(.video-card) {
   transform: translateX(-20px);
 }
 
+.history-poster {
+  width: 64px;
+  height: 90px;
+  line-height: 90px;
+  flex: 0 0 64px;
+  border-radius: 4px;
+  background: #f5f5f5;
+}
+
+.history-poster img {
+  object-fit: cover;
+}
+
 @keyframes slideInLeft {
   to {
     opacity: 1;
